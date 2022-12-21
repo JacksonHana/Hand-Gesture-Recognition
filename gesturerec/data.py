@@ -142,7 +142,7 @@ class GestureSet:
         self.name = self.get_base_path() # do not change the name, it's used as an dict key
 
         self.GESTURE_NAMES_WITHOUT_CUSTOM = set(self.DEFAULT_GESTURE_NAMES)
-        self.GESTURE_NAMES_WITHOUT_CUSTOM.remove('Custom')
+        # self.GESTURE_NAMES_WITHOUT_CUSTOM.remove('Custom')
         
     def load(self):
         '''Loads the gesture trials.'''
@@ -161,7 +161,7 @@ class GestureSet:
         Returns:
         dict: a dict() mapping (str: gesture_name) to (list: Trial objects)
         '''
-        csv_filenames = gesturerec.utility.find_csv_filenames(path_to_dir)
+        csv_filenames = utility.find_csv_filenames(path_to_dir)
 
         print("Found {} csv files in {}".format(len(csv_filenames), path_to_dir))
 
