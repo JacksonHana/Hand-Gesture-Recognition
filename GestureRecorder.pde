@@ -1,28 +1,7 @@
 /** //<>//
  * Records accelerometer-based gestures. Works with the Arduino program
- * ADXL335SerialWriter.ino, LISDHSerialWriter.ino or any program that 
  * provides a CSV input stream on the serial port of "timestamp, x, y, z"
- *
- * Program assumes integer values coming over Serial
- *   
- * By Jon E. Froehlich
- * @jonfroehlich
- * http://makeabilitylab.io
- * 
- * TODO:
- * - [done] Hit space to start and stop. When starting, counts down from 3, 2, 1
- * - [done] Support hardware button press to start
- * - [done] Status is shown in big letters
- * - [done] Saves both full sensor stream plus presegmented?
- * - [done] Maybe save Arduino time, Processing timestamp too?
- * - [done] Draw axes? 
- * - [done] Write out save file name after gesture finished recording? Maybe put in GestureAnnotation overlay
- * - [done] When the window is closed (or closing), flush the printwriter and close it (to ensure all of the fulldata.csv is saved)?
- *
- * Future ideas:
- * - Shows capture snapshot?
- * - GUI to select which gesture to record
- * 
+ * Note: line 392, 597
  */
 
 import processing.serial.*;
@@ -41,24 +20,17 @@ final color YCOLOR = color(73, 164, 239, 200);
 final color ZCOLOR = color(255, 183, 0, 200);
 final color [] SENSOR_VALUE_COLORS = { XCOLOR, YCOLOR, ZCOLOR };
 final color DEFAULT_BACKGROUND_COLOR = color(44, 42, 41);
-final int DISPLAY_TIMEWINDOW_MS = 1000 * 20; // 20 secs. You can change this to view more/less data
+final int DISPLAY_TIMEWINDOW_MS = 1000 * 20; // 20 secs,can be changed this to view more/less data
 
-// Make sure to change this! If you're not sure what port your Arduino is using
-// Run this Processing sketch and look in the console, then change the number accordingly
-final int ARDUINO_SERIAL_PORT_INDEX = 0; // CHANGE THIS TO APPROPRIATE PORT! 
+final int ARDUINO_SERIAL_PORT_INDEX = 0; // CHANGE PORT! 
 
-// Set the baud rate to same as Arduino (e.g., 9600 or 115200)
-final int SERIAL_BAUD_RATE = 115200; // CHANGE THIS TO MATCH BAUD RATE ON ARDUINO
+// Set the baud rate to same as Arduino
+final int SERIAL_BAUD_RATE = 115200; 
 
-// Data buffer shared between the event thread and UI thread. Must use synchronized
-// to access and manipulate
 ArrayList<AccelSensorData> _sensorBuffer = new ArrayList<AccelSensorData>();
 
-// Buffer to display values to the screen
 ArrayList<AccelSensorData> _displaySensorData = new ArrayList<AccelSensorData>();
 
-// Writes accelerometer data to the file system. Because this PrintWriter is shared
-// between the event thread and UI thread, must use synchronized to access
 PrintWriter _printWriterAllData;
 
 // The serial port is necessary to read data in from the Arduino
@@ -76,8 +48,6 @@ long _firstSerialValRcvdTimestamp = -1;
 final color RECORDING_BACKGROUND_COLOR = color(80, 0, 0);
 final int NUM_SAMPLES_TO_RECORD_PER_GESTURE = 5;
 
-// Feel free to rename "Custom" to something that is more semantically meaningful describing your custom gesture
-// For example, I did "Bunny Hops"
 final String [] GESTURES = { "Up", "Down", "Left", "Right", "Clockwise", "Counter Clockwise" };
 int _curGestureIndex = 0;
 HashMap<String, Integer> _mapGestureNameToRecordedCount = new HashMap<String, Integer>(); // tracks recorded gesture counts
@@ -85,7 +55,7 @@ ArrayList<GestureRecording> _gestureRecordings = new ArrayList<GestureRecording>
 
 final int COUNTDOWN_TIME_MS = 4 * 1000; // how long to show a countdown timer before recording a gesture
 long _timestampStartCountdownMs = -1; // timestamp of when the countdown timer was started
-boolean _recordingGesture = false; // true if we are currently recording a gesture, false otherwise
+boolean _recordingGesture = false; // true if currently recording a gesture, false otherwise
 long _timestampSinceLastGestureRecordToggle = -1;
 final int MIN_TIME_BETWEEN_GESTURE_TOGGLE_MS = 500;
 
@@ -110,8 +80,6 @@ void setup() {
   println("Saving accel data to: " + _fullDataStreamFilenameWithPath);
 
   try {
-    // We save all incoming sensor data to a file (by appending)
-    // Appending text to a file: 
     //  - https://stackoverflow.com/questions/17010222/how-do-i-append-text-to-a-csv-txt-file-in-processing
     //  - https://docs.oracle.com/javase/7/docs/api/java/io/FileWriter.html
     //  - Use sketchPath(string) to store in local sketch folder: https://stackoverflow.com/a/36531925
@@ -142,10 +110,8 @@ void setup() {
     println("This index corresponds to serial port " + serialPorts[ARDUINO_SERIAL_PORT_INDEX]);
     _serialPort = new Serial(this, serialPorts[ARDUINO_SERIAL_PORT_INDEX], SERIAL_BAUD_RATE);
 
-    // We need to clear the port (or sometimes there is leftover data)
-    // (Yes, this is strange, but once we implemented this clear,
-    // we were no longer seeing garbage data in the beginning of our printwriter
-    // strea,)
+    // clear the port (or sometimes there is leftover data)
+
     _serialPort.clear();
   }
   catch(Exception e) {
@@ -161,7 +127,6 @@ void setup() {
     return;
   }
 
-  // Don't generate a serialEvent() unless you get a newline character:
   _serialPort.bufferUntil('\n');
 
   _currentXMin = System.currentTimeMillis() - DISPLAY_TIMEWINDOW_MS;
@@ -425,7 +390,7 @@ void drawYAxis() {
   textSize(10);
   float strHeight = textAscent() + textDescent();
   float yRange = getYRange();
-  float yTickStep = yRange / numYTickMarks;
+  //float yTickStep = yRange / numYTickMarks;
   for (int yTickMark = 0; yTickMark < numYTickMarks; yTickMark++) {
     float yVal = map(yTickMark, 0, numYTickMarks, _minSensorVal + yRange * 0.10, _maxSensorVal - yRange * 0.10);
     float yCurPixelVal = getYPixelFromSensorVal(yVal);
@@ -630,7 +595,7 @@ void drawGestureRecordingAnnotations() {
     text(strGesture, xPixelStartGesture + 2, 20);  
 
     if (gestureRecording.hasGestureCompleted()) {
-      String strEndGesture = "Gesture End: \n" + gestureRecording.name;
+      //String strEndGesture = "Gesture End: \n" + gestureRecording.name;
       float xPixelEndGesture = getXPixelFromTimestamp(gestureRecording.endTimestamp);
 
       noStroke();
@@ -645,7 +610,7 @@ void drawGestureRecordingAnnotations() {
 
       // null check on savedfilename
       // this is because a gesture might be completed but the save to file might not be done
-      // see: https://github.com/jonfroehlich/CSE599Sp2019/issues/1
+      // https://github.com/jonfroehlich/CSE599Sp2019/issues/1
       if (gestureRecording.savedFilename != null) {
         text(gestureRecording.savedFilename, xPixelStartGesture + 2, 50);
       }
@@ -655,7 +620,7 @@ void drawGestureRecordingAnnotations() {
 
 /**
  * Called automatically when there is data on the serial port
- * See: https://processing.org/reference/libraries/serial/serialEvent_.html
+ * https://processing.org/reference/libraries/serial/serialEvent_.html
  * Serial source code in github: 
  * https://github.com/processing/processing/blob/master/java/libraries/serial/src/processing/serial/Serial.java
  * 
@@ -755,7 +720,7 @@ void exit() {
   }
 
   if (_printWriterAllData != null) {
-    // We need to synchronize _printWriterAllData because the serial event
+    // synchronize _printWriterAllData because the serial event
     // where we use _printWriterAllData occurs in a different thread
     synchronized(_printWriterAllData) {
       _printWriterAllData.flush();

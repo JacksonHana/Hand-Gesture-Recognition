@@ -1,4 +1,4 @@
-# Classification experiment bookkeeping classes
+
 from scipy.spatial import distance
 from sklearn.metrics import confusion_matrix
 import random
@@ -130,7 +130,7 @@ class ClassificationResults:
     def get_confusion_matrix(self):
         '''
         Returns a scikit learn confusion matrix
-        See: https://scikit-learn.org/stable/modules/generated/sklearn.metrics.confusion_matrix.html
+        https://scikit-learn.org/stable/modules/generated/sklearn.metrics.confusion_matrix.html
         '''
         y_true = list()
         y_pred = list()

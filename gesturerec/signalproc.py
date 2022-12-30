@@ -32,10 +32,7 @@ def compute_fft(s, sampling_rate, n = None, scale_amplitudes = True):
 
 def get_top_n_frequency_peaks(n, freqs, amplitudes, min_amplitude_threshold = None):
     ''' Finds the top N frequencies and returns a sorted list of tuples (freq, amplitudes) '''
-    
-    # Use SciPy signal.find_peaks to find the frequency peaks
-    # JonTODO: in future, could add in support for min horizontal distance so we don't find peaks close together
-    # SciPy's find_peaks supports this, so would be straightforward to implement
+
     fft_peaks_indices, fft_peaks_props = sp.signal.find_peaks(amplitudes, height = min_amplitude_threshold)
     
     freqs_at_peaks = freqs[fft_peaks_indices]

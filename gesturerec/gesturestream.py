@@ -48,10 +48,6 @@ class GestureStream:
         return idx
     
     def __verify_and_fix_full_sensor_stream(self, path_to_file):
-        '''
-        Sometimes the fulldatastream.csv has some small errors in it. This function looks for 
-        those errors, ignores those rows, and saves a new 'clean' file without errors
-        '''
         import csv
         
         TIME_COL_IDX = 0
@@ -65,9 +61,6 @@ class GestureStream:
         list_rows = []
         problem_cnt = 0
         
-        # The following loop fixes problem lines and removes them
-        # For example, in Jesse's log, he has a line (line 4214) that has a *huge* anamalous timestamp:
-        # 1571573159855494	8290	337	342	413
         with open(path_to_file) as csvfile:
             csv_reader = csv.reader(csvfile)
             try:

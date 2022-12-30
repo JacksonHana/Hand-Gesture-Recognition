@@ -1,5 +1,5 @@
-# This cell includes the major classes used in our classification analyses
-# import matplotlib.pyplot as plt # needed for plotting
+
+# import matplotlib.pyplot as plt 
 import numpy as np # numpy is primary library for numeric array (and matrix) handling
 # import scipy as sp
 # from scipy import signal
@@ -18,14 +18,11 @@ class SensorData:
         '''
         self.sensor_type = sensor_type
         
-        # On my mac, I could cast as straight-up int but on Windows, this failed
-        # This is because on Windows, a long is 32 bit but on Unix, a long is 64bit
-        # So, forcing to int64 to be safe. See: https://stackoverflow.com/q/38314118
+        # https://stackoverflow.com/q/38314118
         self.time = time.astype(np.int64) # timestamps are in milliseconds
         
-        # sensor_time comes from the Arduino function. it's in milliseconds 
+        # sensor_time comes from the Arduino function: milliseconds 
         # https://www.arduino.cc/reference/en/language/functions/time/millis/
-        # which returns the number of milliseconds passed since the Arduino board began running the current program.
         self.sensor_time = sensor_time.astype(np.int64) # timestamps are in milliseconds
         
         self.x = x.astype(float)
@@ -90,13 +87,10 @@ class Trial:
         self.log_filename_with_path = log_filename_with_path
         self.log_filename = os.path.basename(log_filename_with_path)
         
-        # unpack=True puts each column in its own array, see https://stackoverflow.com/a/20245874
-        # I had to force all types to strings because auto-type inferencing failed
+        # https://stackoverflow.com/a/20245874
         parsed_accel_log_data = np.genfromtxt(log_filename_with_path, delimiter=',', 
                               dtype=str, encoding=None, skip_header=1, unpack=True)
         
-        # The asterisk is really cool in Python. It allows us to "unpack" this variable
-        # into arguments needed for the SensorData constructor. Google for "tuple unpacking"
         self.accel = SensorData("Accelerometer", *parsed_accel_log_data)
     
     def get_ground_truth_gesture_name(self):
@@ -133,21 +127,18 @@ class GestureSet:
     
     def __init__(self, gesture_log_path):
         '''
-        After calling the constructor, you must call *load* and then *preprocess*
         
         Parameters:
         gesture_log_path: path to the gesture log dir
         '''
         self.path = gesture_log_path
-        self.name = self.get_base_path() # do not change the name, it's used as an dict key
+        self.name = self.get_base_path()
 
         self.GESTURE_NAMES_WITHOUT_CUSTOM = set(self.DEFAULT_GESTURE_NAMES)
         # self.GESTURE_NAMES_WITHOUT_CUSTOM.remove('Custom')
         
     def load(self):
         '''Loads the gesture trials.'''
-        
-        # Our primary object tha maps a gesture name to a list of Trial objects
         self.map_gestures_to_trials = self.__parse_gesture_trials(self.path)   
     
     def __parse_gesture_trials(self, path_to_dir):
@@ -179,10 +170,6 @@ class GestureSet:
             num_rows = None
             sensor_name = "Accelerometer" # currently only one sensor but could expand to more
 
-            # Added this conditional because Windows machines created differently formatted
-            # filenames from Macs. Windows machines automatically replaced the character "'"
-            # with "_", which affects filenames like "Midair Zorro 'Z'_1556730840228_206.csv"
-            # which come out like "Midair Zorro _Z__1557937136974_211.csv" instead
             if '__' in filename_no_ext:
                 filename_parts1 = filename_no_ext.split("__")
                 gesture_name = filename_parts1[0]
@@ -214,8 +201,6 @@ class GestureSet:
         # track the longest array
         max_array_length = -1
         trial_with_most_sensor_events = None
-
-        # Now we need to loop through the data and sort each gesture set by timems values 
         # (so that we have trial 1, 2, 3, etc. in order)
         for gesture_name, map_endtime_to_map_sensor_to_file in map_gesture_name_to_map_endtime_to_map_sensor_to_file.items():
             gesture_trial_num = 0
